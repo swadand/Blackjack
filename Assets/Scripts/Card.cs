@@ -56,6 +56,11 @@ public class Card : MonoBehaviour
         GetComponent<Animator>().Play("hit");
     }
 
+    void StartOpCardAnim()
+    {
+        GetComponent<Animator>().Play("opHit");
+    }
+
     public int GetScore()
     {
         return Score;
@@ -78,6 +83,25 @@ public class Card : MonoBehaviour
         meshRenderer.sharedMaterials = materials;
 
         StartCardAnim();
+    }
+
+    public void SetOpCard()
+    {
+        string name = GetRandomCard();
+        Debug.Log(name);
+        Texture2D tex = Resources.Load<Texture2D>($"cards/{name}");
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+
+        // Clone the material to avoid modifying the original material
+        Material[] materials = meshRenderer.sharedMaterials;
+        Material newMaterial = new Material(Shader.Find("Simple Toon/SToon Default"));
+        newMaterial.mainTexture = tex;
+        newMaterial.mainTextureOffset = materials[1].mainTextureOffset;
+        newMaterial.mainTextureScale = materials[1].mainTextureScale;
+        materials[1] = newMaterial;
+        meshRenderer.sharedMaterials = materials;
+
+        StartOpCardAnim();
     }
 
     public void ResetTransform()
