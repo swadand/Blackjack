@@ -32,31 +32,60 @@ public class Main : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (playerScore > 21 && !playerStand)
+        if (opScore > 21)
+        {
+            gameOver = true;
+            playerStand = false;
+            scoreText.text = "You Won!";
+            Debug.Log("player: " + playerScore);
+            Debug.Log("op: " + opScore);
+            DestroyAllCards();
+        }
+        else if (opScore < 22 && opScore > playerScore)
+        {
+            gameOver = true;
+            playerStand = false;
+            scoreText.text = "You Lost!";
+            Debug.Log("player: " + playerScore);
+            Debug.Log("op: " + opScore);
+            DestroyAllCards();
+        }
+        else if (playerScore > 21 && !playerStand)
         {
             if ((Time.time - timeInterval) > 1)
             {
                 Debug.Log("Lost!");
                 gameOver = true;
                 scoreText.text = "You Lost!";
+                Debug.Log("player: " + playerScore);
+                Debug.Log("op: " + opScore);
                 DestroyAllCards();
             }
         }
-
-        if (opScore > playerScore && opScore < 22)
+        else if (playerScore == 21)
         {
-            gameOver = true;
-            playerStand = false;
-            scoreText.text = "You Lost!";
-            DestroyAllCards();
+            if ((Time.time - timeInterval) > 1)
+            {
+                Debug.Log("Won!");
+                gameOver = true;
+                scoreText.text = "You Won!";
+                Debug.Log("player: " + playerScore);
+                Debug.Log("op: " + opScore);
+                DestroyAllCards();
+            }
         }
-
-        if (opScore > 21)
+        else if (playerScore == opScore && playerScore != 0 && opScore != 0 && playerScore > 16)
         {
-            gameOver = true;
-            playerStand = false;
-            scoreText.text = "You Won!";
-            DestroyAllCards();
+            if ((Time.time - timeInterval) > 1)
+            {
+                Debug.Log("Tie");
+                gameOver = true;
+                scoreText.text = "Tie!";
+                Debug.Log("player: " + playerScore);
+                Debug.Log("op: " + opScore);
+                playerStand = false;
+                DestroyAllCards();
+            }
         }
     }
 
@@ -70,11 +99,12 @@ public class Main : MonoBehaviour
 
     IEnumerator OpTurn()
     {
-        while (opScore < playerScore && !gameOver)
+        while (opScore < playerScore && !gameOver && playerStand)
         {
             if (opScore >= 15 && opScore <= 21)
-            {
-                if (OpLogic())
+            {   
+                if(playerScore < 18 && opScore < 18) OpponentHit();
+                if (OpLogic() || opScore < playerScore)
                 {
                     OpponentHit();
                     Debug.Log("risk taken");
@@ -84,9 +114,13 @@ public class Main : MonoBehaviour
                 {
                     scoreText.text = "You Won!";
                     Debug.Log("Won!");
+                    Debug.Log("player: " + playerScore);
+                    Debug.Log("op: " + opScore);
                     gameOver = true;
                     playerStand = false;
                     DestroyAllCards();
+                    break;
+
                 }
             }
             OpponentHit();
@@ -115,27 +149,33 @@ public class Main : MonoBehaviour
 
     private void DestroyAllCards()
     {
-        playerScore = 0;
-        opScore = 0;
-        Destroy(playerSpawned1);
-        Destroy(opSpawned1);
+        if ((Time.time - timeInterval) > 1)
+        {
+            playerScore = 0;
+            opScore = 0;
+            Destroy(playerSpawned1);
+            Destroy(opSpawned1);
+        }
     }
 
     void Hit()
     {
-        gameOver = false;
-        scoreText.text = playerScore.ToString();
-        opScoreText.text = opScore.ToString();
-        if ((Time.time - timeInterval) > 1)
+        if (!playerStand)
         {
-            timeInterval = Time.time;
-            var card = Instantiate(cardPrefab, deckTop.transform.position, deckTop.transform.rotation);
-            Card cardScript = card.GetComponent<Card>();
-            cardScript.SetCard();
-            playerScore += cardScript.GetScore();
+            gameOver = false;
             scoreText.text = playerScore.ToString();
+            opScoreText.text = opScore.ToString();
+            if ((Time.time - timeInterval) > 1)
+            {
+                timeInterval = Time.time;
+                var card = Instantiate(cardPrefab, deckTop.transform.position, deckTop.transform.rotation);
+                Card cardScript = card.GetComponent<Card>();
+                cardScript.SetCard();
+                playerScore += cardScript.GetScore();
+                scoreText.text = playerScore.ToString();
 
-            StartCoroutine(ReorderCards(card));
+                StartCoroutine(ReorderCards(card));
+            }
         }
     }
 
